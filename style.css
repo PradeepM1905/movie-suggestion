@@ -1,0 +1,27 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+#suggestions {
+    display: flex;
+    flex-direction: column;
+}
+
+.suggestion {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.suggestion img {
+    max-width: 100px;
+}
+
+.suggestion button {
+    margin-left: 10px;
+}
