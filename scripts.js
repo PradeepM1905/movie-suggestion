@@ -1,3 +1,5 @@
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEKGU9_qYbkEszUN4hcaq7tfwgErq6SidNyoJIuCfMsTEwH7pKtrLerpYVjhAWZDSl/exec';
+
 document.getElementById('suggestionForm').addEventListener('submit', function(event) {
     event.preventDefault();
     
@@ -5,25 +7,42 @@ document.getElementById('suggestionForm').addEventListener('submit', function(ev
     const poster = document.getElementById('moviePoster').value;
     const description = document.getElementById('movieDescription').value;
     
-    const suggestion = document.createElement('div');
-    suggestion.className = 'suggestion';
-    suggestion.innerHTML = `
-        <h2>${title}</h2>
-        <img src="${poster}" alt="${title}">
-        <p>${description}</p>
-        <button class="thumbs-up">👍</button>
-        <button class="thumbs-down">👎</button>
-    `;
-    
-    document.getElementById('suggestions').appendChild(suggestion);
-    
-    document.getElementById('suggestionForm').reset();
+    fetch(`${GOOGLE_SCRIPT_URL}?action=add&title=${encodeURIComponent(title)}&poster=${encodeURIComponent(poster)}&description=${encodeURIComponent(description)}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('suggestionForm').reset();
+            loadSuggestions();
+        });
 });
 
-document.getElementById('suggestions').addEventListener('click', function(event) {
-    if (event.target.classList.contains('thumbs-up')) {
-        // Handle thumbs up
-    } else if (event.target.classList.contains('thumbs-down')) {
-        // Handle thumbs down
-    }
-});
+function loadSuggestions() {
+    fetch(`${GOOGLE_SCRIPT_URL}?action=get`)
+        .then(response => response.json())
+        .then(data => {
+            const suggestionsDiv = document.getElementById('suggestions');
+            suggestionsDiv.innerHTML = '';
+            data.forEach((row, index) => {
+                const suggestionDiv = document.createElement('div');
+                suggestionDiv.className = 'suggestion';
+                suggestionDiv.innerHTML = `
+                    <h2>${row[0]}</h2>
+                    <img src="${row[1]}" alt="${row[0]}">
+                    <p>${row[2]}</p>
+                    <button class="thumbs-up" onclick="updateThumbs(${index}, 'up')">👍 ${row[3]}</button>
+                    <button class="thumbs-down" onclick="updateThumbs(${index}, 'down')">👎 ${row[4]}</button>
+                `;
+                suggestionsDiv.appendChild(suggestionDiv);
+            });
+        });
+}
+
+function updateThumbs(id, type) {
+    fetch(`${GOOGLE_SCRIPT_URL}?action=update&id=${id}&type=${type}`)
+        .then(response => response.json())
+        .then(data => {
+            loadSuggestions();
+        });
+}
+
+// Load suggestions on page load
+loadSuggestions();
